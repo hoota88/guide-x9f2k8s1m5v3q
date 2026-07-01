@@ -1,19 +1,3 @@
-// 사이트 접속 즉시 비밀번호 확인
-(function checkPassword() {
-    const correctPassword = "vote2026_secure"; // 사용할 비밀번호 지정
-    let userPassword = prompt("장애조치 가이드 접속 비밀번호를 입력하세요:");
-
-    while (userPassword !== correctPassword) {
-        if (userPassword === null) {
-            // 취소 버튼 누른 경우 블랭크 처리
-            document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>접근 권한이 없습니다.</h2>";
-            return;
-        }
-        userPassword = prompt("비밀번호가 틀렸습니다. 다시 입력하세요:");
-    }
-    // 비밀번호가 맞으면 아래 기존 init() 함수 등이 실행되면서 화면이 나타남
-})();
-
 // 1. PPT 내용 데이터 구조화 (예시 데이터)
 const guideData = [
     {
