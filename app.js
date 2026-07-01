@@ -1,4 +1,4 @@
-// 1. PPT 내용 데이터 구조화 (정리된 데이터셋)
+// 1. PPT 내용 데이터 구조화 (기존 데이터 유지)
 const guideData = [
     {
         "location": "행동수칙",
@@ -136,7 +136,7 @@ const solutionSection = document.getElementById('solution-section');
 // 3. 초기 화면: 위치 버튼들 생성하기
 function init() {
     if(!locationList) return; 
-    locationList.innerHTML = ''; // 중복 생성 방지 초기화
+    locationList.innerHTML = ''; 
     
     guideData.forEach((data, index) => {
         const btn = document.createElement('button');
@@ -146,22 +146,55 @@ function init() {
     });
 }
 
-// 4. 위치 선택 시 문제 리스트 노출
+// 4. 위치 선택 시 문제 리스트 노출 (★ 동일 증상명 그룹화 처리 도입)
 function selectLocation(index, targetBtn) {
     document.querySelectorAll('#location-list button').forEach(b => b.classList.remove('active'));
     targetBtn.classList.add('active');
 
     const selectedData = guideData[index];
-    if(problemCount) problemCount.textContent = `${selectedData.problems.length}건`;
     if(!problemList) return;
     
     problemList.innerHTML = ''; 
     if(solutionSection) solutionSection.classList.add('hidden'); 
 
+    // 동일 symptom 명칭을 가진 데이터들을 하나로 묶기
+    const uniqueProblems = {};
+    
     selectedData.problems.forEach(prob => {
+        if (!uniqueProblems[prob.symptom]) {
+            // 처음 등록되는 증상명이면 뼈대 생성 (이미지를 담을 배열 imgList 추가)
+            uniqueProblems[prob.symptom] = {
+                symptom: prob.symptom,
+                caution: prob.caution || "",
+                steps: prob.steps ? [...prob.steps] : [],
+                imgList: [prob.img] // 이미지 파일들을 담을 배열
+            };
+        } else {
+            // 이미 존재하는 증상명이면 이미지와 조치 단계만 누적 합산
+            if (prob.img) uniqueProblems[prob.symptom].imgList.push(prob.img);
+            if (prob.caution && !uniqueProblems[prob.symptom].caution) {
+                uniqueProblems[prob.symptom].caution = prob.caution;
+            }
+            if (prob.steps && prob.steps.length > 0) {
+                prob.steps.forEach(step => {
+                    if (!uniqueProblems[prob.symptom].steps.includes(step)) {
+                        uniqueProblems[prob.symptom].steps.push(step);
+                    }
+                });
+            }
+        }
+    });
+
+    const processedProblems = Object.values(uniqueProblems);
+    if(problemCount) problemCount.textContent = `${processedProblems.length}건`;
+
+    // 화면에 중복 제거된 증상 목록 뿌리기
+    processedProblems.forEach(prob => {
         const item = document.createElement('div');
         item.className = 'list-item';
-        item.textContent = `📌 ${prob.symptom}`; // 문법 오류 백틱(``) 수정 완료
+        // 여러 장인 경우 갯수를 배지로 표기 (예: 📌 프린터인식 or 출력 안됨 (12장))
+        const imgCountText = prob.imgList.length > 1 ? ` (${prob.imgList.length}장)` : '';
+        item.textContent = `📌 ${prob.symptom}${imgCountText}`; 
         item.onclick = () => showSolution(prob);
         problemList.appendChild(item);
     });
@@ -169,12 +202,12 @@ function selectLocation(index, targetBtn) {
     problemList.scrollIntoView({ behavior: 'smooth' });
 }
 
-// 5. 문제 선택 시 조치 방법 및 PPT 이미지 출력
+// 5. 문제 선택 시 조치 방법 및 여러 장의 PPT 이미지 출력 개편
 function showSolution(prob) {
     const selectedSymptom = document.getElementById('selected-symptom');
     const cautionText = document.getElementById('caution-text');
     const stepList = document.getElementById('step-list');
-    const pptImage = document.getElementById('ppt-image');
+    const imageContainer = document.querySelector('.image-container');
 
     if(selectedSymptom) selectedSymptom.textContent = prob.symptom;
     if(cautionText) cautionText.textContent = prob.caution || "없음";
@@ -194,7 +227,41 @@ function showSolution(prob) {
         }
     }
 
-    if(pptImage) pptImage.src = prob.img;
+    // ★ 이미지를 처리하는 영역 대폭 수정 (여러 장 생성)
+    if(imageContainer) {
+        imageContainer.innerHTML = ''; // 기존 이미지 영역 초기화
+        
+        prob.imgList.forEach((imgSrc, idx) => {
+            // 이미지 박스 선언 (여러 장 식별용 번호 추가 기능)
+            const imgWrapper = document.createElement('div');
+            imgWrapper.style.position = 'relative';
+            imgWrapper.style.marginBottom = '20px';
+            
+            const imgObj = document.createElement('img');
+            imgObj.src = imgSrc;
+            imgObj.alt = `${prob.symptom} 가이드 이미지 - ${idx + 1}`;
+            imgObj.style.width = '100%';
+            imgObj.style.display = 'block';
+            imgObj.style.borderRadius = '8px';
+            imgObj.style.border = '1px solid #ddd';
+
+            // 이미지 상단에 조그맣게 페이지 순서 표기 (예: [1 / 12])
+            if (prob.imgList.length > 1) {
+                const badge = document.createElement('span');
+                badge.textContent = `[참고 가이드 ${idx + 1} / ${prob.imgList.length}]`;
+                badge.style.display = 'block';
+                badge.style.fontSize = '0.85rem';
+                badge.style.color = '#666';
+                badge.style.marginBottom = '5px';
+                badge.style.fontWeight = 'bold';
+                imgWrapper.appendChild(badge);
+            }
+
+            imgWrapper.appendChild(imgObj);
+            imageContainer.appendChild(imgWrapper);
+        });
+    }
+
     if(solutionSection) {
         solutionSection.classList.remove('hidden');
         solutionSection.scrollIntoView({ behavior: 'smooth' });
