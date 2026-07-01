@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투표지분류기 장애조치 가이드</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>투표지분류기 장애조치 가이드</h1>
+        <p>장애 발생 위치를 먼저 선택하고 증상을 선택하세요.</p>
+    </header>
+
+    <main>
+        <section class="card">
+            <h2>1. 장애 발생 위치 선택</h2>
+            <div id="location-list" class="button-grid">
+                </div>
+        </section>
+
+        <section class="card">
+            <h2>2. 문제 선택 <span id="problem-count">0건</span></h2>
+            <div id="problem-list" class="list-group">
+                <p class="placeholder">먼저 장애 발생위치를 선택해 주세요.</p>
+            </div>
+        </section>
+
+        <section id="solution-section" class="card hidden">
+            <h2 id="selected-symptom">증상명</h2>
+            <div class="alert-box">
+                <strong>현장 주의:</strong> <span id="caution-text">주의사항</span>
+            </div>
+            <h3>조치 방법</h3>
+            <ol id="step-list"></ol>
+            
+            <h3>참고 PPT 페이지</h3>
+            <div class="image-container">
+                <img id="ppt-image" src="" alt="PPT 가이드 이미지">
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
